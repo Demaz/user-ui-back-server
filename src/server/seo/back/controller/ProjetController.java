@@ -65,9 +65,9 @@ public class ProjetController {
 	}
 	
 	@RequestMapping(value="/addUrllist",method = RequestMethod.POST)
-	public ProjetListUrl addListUrl(@RequestBody ProjetListUrl projetListUrl ,HttpServletRequest request,@RequestParam("projetUid") Integer projetUid) {
+	public ProjetListUrl addListUrl(@RequestBody ProjetListUrl projetListUrl ,HttpServletRequest request) {
 		Integer userUid = UserSessionHelper.getSessionUserUid(request);
-		return projetService.addListUrl(projetListUrl,userUid,projetUid);
+		return projetService.addListUrl(projetListUrl,userUid);
 	}
 	
 	@RequestMapping(value="/addUpdateUrlToList",method = RequestMethod.POST)
