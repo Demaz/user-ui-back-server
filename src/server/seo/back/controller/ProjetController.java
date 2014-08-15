@@ -100,6 +100,17 @@ public class ProjetController {
 		return projetService.getProjetUsers(userUid, projetUid);
 	}
 	
+	@RequestMapping(value="/comptesUsers",method = RequestMethod.POST)
+	public List<User> getComptesUsers(HttpServletRequest request,@RequestParam("projetUid") Integer projetUid) {
+		Integer userUid = UserSessionHelper.getSessionUserUid(request);
+		return projetService.getComptesUsers(projetUid,userUid);
+	}
+	
+	@RequestMapping(value="/addProjetUser",method = RequestMethod.POST)
+	public Integer addProjetUser(HttpServletRequest request,@RequestParam("projetUid") Integer projetUid,@RequestParam("userUid") Integer otherUserUid) {
+		return projetService.addProjetUser(otherUserUid, projetUid);
+	}
+	
 	@RequestMapping(value="/ping",method = RequestMethod.GET)
 	public void ping() {
 		

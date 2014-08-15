@@ -35,7 +35,7 @@ public class LoginController {
 	 @RequestMapping(value="/signe",method = RequestMethod.POST)
 	 public String signe(HttpServletRequest request,@RequestParam("username") String username,@RequestParam("password") String password) {
 		 
-		 List<Map<String,Object>> rows = getJdbcTemplate().queryForList("Select uid, username,password from tuserlogin where username = ? and password = ?"
+		 List<Map<String,Object>> rows = getJdbcTemplate().queryForList("Select uid, username,password from tusers where username = ? and password = ?"
 				 , new String[] {username,password} );
 	  if(rows.size() > 0 && rows.get(0).get("uid") != null) {
 		  Integer userUid = Integer.valueOf(rows.get(0).get("uid").toString());
