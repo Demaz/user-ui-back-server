@@ -15,10 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import seo.scanner.dataService.ProjetService;
+import seo.scanner.domain.Parameters;
 import seo.scanner.domain.Projet;
 import seo.scanner.domain.ProjetListUrl;
 import seo.scanner.domain.UrlToCheck;
 import seo.scanner.domain.User;
+import seo.scanner.domain.Useragent;
 import server.seo.back.utils.UserSessionHelper;
 
 
@@ -109,6 +111,22 @@ public class ProjetController {
 	@RequestMapping(value="/addProjetUser",method = RequestMethod.POST)
 	public Integer addProjetUser(HttpServletRequest request,@RequestParam("projetUid") Integer projetUid,@RequestParam("userUid") Integer otherUserUid) {
 		return projetService.addProjetUser(otherUserUid, projetUid);
+	}
+	
+	@RequestMapping(value="/useragents",method = RequestMethod.GET)
+	public List<Useragent> addProjetUser() {
+		return projetService.getUseragents();
+	}
+	
+	@RequestMapping(value="/parameters/get",method = RequestMethod.POST)
+	public Parameters getParameters(@RequestParam("projetListUrlUid") Integer projetListUrlUid) {
+		return projetService.getParameters(projetListUrlUid);
+	}
+
+	
+	@RequestMapping(value="/parameters/save",method = RequestMethod.POST)
+	public Parameters saveParameters(@RequestBody Parameters parameters) {
+		return projetService.saveParameters(parameters);
 	}
 	
 	@RequestMapping(value="/ping",method = RequestMethod.GET)
