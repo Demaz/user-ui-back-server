@@ -1,10 +1,19 @@
 package server.seo.back.controller;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.bind.JAXBException;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,7 +21,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.xml.sax.SAXException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.dom4j.DocumentException;
+
+import com.googlecode.jcsv.CSVStrategy;
+import com.googlecode.jcsv.annotations.internal.ValueProcessorProvider;
+import com.googlecode.jcsv.reader.CSVReader;
+import com.googlecode.jcsv.reader.internal.AnnotationEntryParser;
+import com.googlecode.jcsv.reader.internal.CSVReaderBuilder;
 
 import seo.scanner.dataService.ProjetService;
 import seo.scanner.domain.Parameters;
@@ -21,6 +39,7 @@ import seo.scanner.domain.ProjetListUrl;
 import seo.scanner.domain.UrlToCheck;
 import seo.scanner.domain.User;
 import seo.scanner.domain.Useragent;
+import seo.scanner.sitemap.SitemapService;
 import server.seo.back.utils.UserSessionHelper;
 
 
@@ -30,7 +49,12 @@ public class ProjetController {
 	
 	@Autowired
 	private ProjetService projetService;
-
+	
+	
+	@Autowired
+	private SitemapService sitemapService;
+	
+	
 	@RequestMapping(value="/add",method = RequestMethod.POST)
 	public String addProject(HttpServletRequest request) {
 		Integer mapSize = 0;
@@ -128,6 +152,45 @@ public class ProjetController {
 	public Parameters saveParameters(@RequestBody Parameters parameters) {
 		return projetService.saveParameters(parameters);
 	}
+	
+	
+	
+	@RequestMapping(value="/listes/sitemap/save",method = RequestMethod.POST)
+	public Boolean saveSitemap(@RequestParam("projetListUrlUid") Integer projetListUrlUid,@RequestParam("sitemapUrl") String sitemapUrl) throws MalformedURLException, JAXBException ,  ParserConfigurationException, SAXException, IOException, DocumentException {
+		URL sitemap = new URL(sitemapUrl);
+		List<UrlToCheck> urlToChecks =  sitemapService.getUrlFromSitemap(sitemap);
+		projetService.cleanProjetListUrl(projetListUrlUid);
+		projetService.addUrlsToList(urlToChecks, projetListUrlUid);
+		return true;
+	}
+	
+	@RequestMapping(value="/listes/upload/csv",method = RequestMethod.POST)
+	public List<UrlToCheck> uploadCsv(@RequestParam("projetListUrlUid") Integer projetListUrlUid,@RequestParam("file") MultipartFile file) throws IllegalStateException, IOException {
+		  if (!file.isEmpty()) {
+	            	 File convFile = new File( file.getOriginalFilename());
+	                 file.transferTo(convFile);
+	            	
+	            	FileReader fileReader = new FileReader(convFile);
+	            	char delimiter = ';';
+	            	char quote = '"';
+	            	char comment = '#';
+	            	
+	            	CSVStrategy strategy = new CSVStrategy(delimiter,quote,comment,true,true);
+	            	ValueProcessorProvider vpp = new ValueProcessorProvider();
+	            	CSVReader<UrlToCheck> csvPersonReader =  new CSVReaderBuilder<UrlToCheck>(fileReader).strategy(strategy).entryParser(
+	                        new AnnotationEntryParser<UrlToCheck>(UrlToCheck.class, vpp)).build();
+
+	            	List<UrlToCheck> urlToChecks = csvPersonReader.readAll();
+	            	projetService.cleanProjetListUrl(projetListUrlUid);
+	            	projetService.addUrlsToList(urlToChecks, projetListUrlUid);
+	            	return urlToChecks;
+		  } else {
+			  return new ArrayList<UrlToCheck>();
+		  }
+		
+	   		
+	}
+	
 	
 	@RequestMapping(value="/ping",method = RequestMethod.GET)
 	public void ping() {
