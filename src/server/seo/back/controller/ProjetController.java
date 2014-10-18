@@ -1,8 +1,6 @@
 package server.seo.back.controller;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +31,7 @@ import com.googlecode.jcsv.reader.internal.AnnotationEntryParser;
 import com.googlecode.jcsv.reader.internal.CSVReaderBuilder;
 
 import seo.scanner.dataService.ProjetService;
+import seo.scanner.domain.Alertes;
 import seo.scanner.domain.Parameters;
 import seo.scanner.domain.Projet;
 import seo.scanner.domain.ProjetListUrl;
@@ -153,7 +152,16 @@ public class ProjetController {
 		return projetService.saveParameters(parameters);
 	}
 	
+	@RequestMapping(value="/alertes/get",method = RequestMethod.POST)
+	public Alertes getAlertes(@RequestParam("projetListUrlUid") Integer projetListUrlUid) {
+		return projetService.getAlertes(projetListUrlUid);
+	}
 	
+	@RequestMapping(value="/alertes/save",method = RequestMethod.POST)
+	public Alertes saveAlertes(@RequestBody Alertes alertes) {
+		return projetService.saveAlertes(alertes);
+	}
+
 	
 	@RequestMapping(value="/listes/sitemap/save",method = RequestMethod.POST)
 	public Boolean saveSitemap(@RequestParam("projetListUrlUid") Integer projetListUrlUid,@RequestParam("sitemapUrl") String sitemapUrl) throws MalformedURLException, JAXBException ,  ParserConfigurationException, SAXException, IOException, DocumentException {
