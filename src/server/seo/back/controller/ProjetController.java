@@ -30,6 +30,7 @@ import seo.scanner.domain.Event;
 import seo.scanner.domain.Parameters;
 import seo.scanner.domain.Projet;
 import seo.scanner.domain.ProjetListUrl;
+import seo.scanner.domain.UrlCheckResult;
 import seo.scanner.domain.UrlToCheck;
 import seo.scanner.domain.User;
 import seo.scanner.domain.Useragent;
@@ -114,6 +115,13 @@ public class ProjetController {
 		return projetService.getComptesUsers(projetUid, userUid);
 	}
 
+	@RequestMapping(value = "/reports", method = RequestMethod.POST)
+	public List<UrlCheckResult> getLastEvent(HttpServletRequest request,
+			@RequestParam("projetListUrlUid") Integer projetListUrlUid,
+			@RequestParam("eventStartUid") Integer eventStartUid, @RequestParam("eventEndUid") Integer eventEndUid) {
+		return projetService.getCrawResults(eventStartUid, eventEndUid, projetListUrlUid);
+	}
+
 	@RequestMapping(value = "/parameters/get", method = RequestMethod.POST)
 	public Parameters getParameters(@RequestParam("projetListUrlUid") Integer projetListUrlUid) {
 		return projetService.getParameters(projetListUrlUid);
@@ -148,6 +156,12 @@ public class ProjetController {
 	public List<User> getProjetUsers(HttpServletRequest request, @RequestParam("projetUid") Integer projetUid) {
 		Integer userUid = UserSessionHelper.getSessionUserUid(request);
 		return projetService.getProjetUsers(userUid, projetUid);
+	}
+
+	@RequestMapping(value = "/events", method = RequestMethod.POST)
+	public List<Event> getReportResults(HttpServletRequest request,
+			@RequestParam("projetListUrlUid") Integer projetListUrlUid) {
+		return projetService.getLastEventDoneOfUrlList(projetListUrlUid);
 	}
 
 	@RequestMapping(value = "/ping", method = RequestMethod.GET)
