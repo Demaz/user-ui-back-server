@@ -27,11 +27,20 @@
 	 
 	 <bean id="sitemapService" class="seo.scanner.sitemap.SitemapService" />
 	 
+	 <bean id="statisticsService" class="seo.scanner.statistics.StatisticsService" />
+	 <!--  
 	 	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 	        <property name="driverClassName" value="org.postgresql.Driver" />
 	        <property name="url" value="jdbc:postgresql://localhost:5432/seoscanner" />
 	        <property name="username" value="pgmaster" />
 	        <property name="password" value="seo" />
 		</bean>
+		-->
+		
+		<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+        	<property name="jndiName" value="jdbc/seoscanner"/>
+        	<property name="resourceRef" value="true" />
+       </bean>
+      
 	 
 	  </beans>

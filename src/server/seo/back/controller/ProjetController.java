@@ -3,7 +3,6 @@ package server.seo.back.controller;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -13,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.dom4j.DocumentException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,11 +28,13 @@ import seo.scanner.domain.Event;
 import seo.scanner.domain.Parameters;
 import seo.scanner.domain.Projet;
 import seo.scanner.domain.ProjetListUrl;
+import seo.scanner.domain.Statistics;
 import seo.scanner.domain.UrlCheckResult;
 import seo.scanner.domain.UrlToCheck;
 import seo.scanner.domain.User;
 import seo.scanner.domain.Useragent;
 import seo.scanner.sitemap.SitemapService;
+import seo.scanner.statistics.StatisticsService;
 import server.seo.back.utils.UserSessionHelper;
 
 import com.googlecode.jcsv.CSVStrategy;
@@ -53,27 +53,20 @@ public class ProjetController {
 	@Autowired
 	private SitemapService sitemapService;
 
+	@Autowired
+	private StatisticsService statisticsService;
+
 	@RequestMapping(value = "/addUrllist", method = RequestMethod.POST)
 	public ProjetListUrl addListUrl(@RequestBody ProjetListUrl projetListUrl, HttpServletRequest request) {
 		Integer userUid = UserSessionHelper.getSessionUserUid(request);
 		return projetService.addListUrl(projetListUrl, userUid);
 	}
 
-	@RequestMapping(value = "/add", method = RequestMethod.POST)
-	public String addProject(HttpServletRequest request) {
-		Integer mapSize = 0;
-		try {
-			InputStream jsonStream = request.getInputStream();
-			ObjectMapper mapper = new ObjectMapper();
-			Projet projet = mapper.readValue(jsonStream, Projet.class);
-			projet.setUserUid(UserSessionHelper.getSessionUserUid(request));
-			projet = projetService.addProjet(projet);
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return mapSize.toString();
+	@RequestMapping(value = "/projet/add", method = RequestMethod.POST)
+	public Projet addProject(HttpServletRequest request, @RequestBody Projet projet) {
+		projet.setUserUid(UserSessionHelper.getSessionUserUid(request));
+		projet = projetService.addProjet(projet);
+		return projet;
 	}
 
 	@RequestMapping(value = "/useragents", method = RequestMethod.GET)
@@ -116,10 +109,12 @@ public class ProjetController {
 	}
 
 	@RequestMapping(value = "/reports", method = RequestMethod.POST)
-	public List<UrlCheckResult> getLastEvent(HttpServletRequest request,
+	public Statistics getLastEvent(HttpServletRequest request,
 			@RequestParam("projetListUrlUid") Integer projetListUrlUid,
 			@RequestParam("eventStartUid") Integer eventStartUid, @RequestParam("eventEndUid") Integer eventEndUid) {
-		return projetService.getCrawResults(eventStartUid, eventEndUid, projetListUrlUid);
+		List<UrlCheckResult> urlCheckResults = projetService.getCrawResults(eventStartUid, eventEndUid,
+				projetListUrlUid);
+		return statisticsService.computeStatistics(urlCheckResults);
 	}
 
 	@RequestMapping(value = "/parameters/get", method = RequestMethod.POST)
@@ -127,7 +122,7 @@ public class ProjetController {
 		return projetService.getParameters(projetListUrlUid);
 	}
 
-	@RequestMapping(value = "/get", method = RequestMethod.POST)
+	@RequestMapping(value = "/projet/get", method = RequestMethod.POST)
 	public Projet getProjet(HttpServletRequest request, @RequestParam("projetUid") Integer projetUid) {
 		Integer userUid = UserSessionHelper.getSessionUserUid(request);
 		return projetService.getProjetbyUid(projetUid, userUid);
@@ -143,7 +138,7 @@ public class ProjetController {
 	public ProjetListUrl getProjetListUrl(HttpServletRequest request, @RequestParam("projetUid") Integer projetUid,
 			@RequestParam("projetListUrlUid") Integer projetListUrlUid) {
 		Integer userUid = UserSessionHelper.getSessionUserUid(request);
-		return projetService.getProjetListUrl(userUid, projetUid, projetListUrlUid, true, false);
+		return projetService.getProjetListUrl(userUid, projetUid, projetListUrlUid, true, false, true);
 	}
 
 	@RequestMapping(value = "/projets", method = RequestMethod.GET)
@@ -193,6 +188,13 @@ public class ProjetController {
 		projetService.cleanProjetListUrl(projetListUrlUid);
 		projetService.addUrlsToList(urlToChecks, projetListUrlUid);
 		return true;
+	}
+
+	@RequestMapping(value = "/projet/update", method = RequestMethod.POST)
+	public Projet updateProject(HttpServletRequest request, @RequestBody Projet projet) {
+		projet.setUserUid(UserSessionHelper.getSessionUserUid(request));
+		projet = projetService.updateProjet(projet);
+		return projet;
 	}
 
 	@RequestMapping(value = "/listes/upload/csv", method = RequestMethod.POST)
